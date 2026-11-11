@@ -13,7 +13,11 @@ static void onRecv(const uint8_t *, const uint8_t *data, int len) {
   if (g_instance) g_instance->_handle(data, len);
 }
 
-bool DroidParadeSlave::begin(uint8_t channel) {
+bool DroidParadeSlave::begin(const DroidParadeConfig &config) {
+  if (!config.secret || strlen(config.secret) < 8) return false;
+  uint8_t channel = config.channel;
+  _secret = config.secret;
+  _paradeId = config.paradeId;
   g_instance = this;
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -27,7 +31,12 @@ void DroidParadeSlave::_handle(const uint8_t *data, int len) {
   if (len != (int)sizeof(DroidParadePacket)) return;
   DroidParadePacket tmp;
   memcpy(&tmp, data, sizeof(tmp));
-  if (!droidParadeValid(tmp)) return;
+  // 1. Parade-ID (billig, trennt parallele Paraden)
+  if (tmp.paradeId != _paradeId) return;
+  // 2. Signatur mit gemeinsamem Secret
+  if (!droidParadeValid(tmp, _secret)) { _rejected = _rejected + 1; return; }
+  // 3. Replay-Schutz: Sequenz muss neuer sein (außer nach Verbindungsabbruch)
+  if (isConnected() && (int32_t)(tmp.sequence - _p.sequence) <= 0) { _rejected = _rejected + 1; return; }
   _p = tmp;
   _lastMs = millis();
   _everReceived = true;

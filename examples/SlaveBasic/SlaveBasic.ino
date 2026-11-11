@@ -3,9 +3,16 @@
 
 DroidParadeSlave droid;
 
+// Muss exakt der Konfiguration des Masters entsprechen, sonst bleibt der Droide stumm.
+const DroidParadeConfig paradeConfig = {
+  /* paradeId */ 0x0001,
+  /* secret   */ "BITTE-AENDERN-geheimes-Passwort",
+  /* channel  */ 1
+};
+
 void setup() {
   Serial.begin(115200);
-  if (!droid.begin(1)) Serial.println("ESP-NOW Init fehlgeschlagen");  // Kanal 1 wie Master
+  if (!droid.begin(paradeConfig)) Serial.println("ESP-NOW Init fehlgeschlagen");
 }
 
 void loop() {

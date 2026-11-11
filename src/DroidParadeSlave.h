@@ -8,11 +8,13 @@
 
 class DroidParadeSlave {
 public:
-  bool begin(uint8_t channel = 1);
+  // false bei leerem/zu kurzem Secret oder ESP-NOW-Fehler
+  bool begin(const DroidParadeConfig &config);
 
   // Verbindung
   bool isConnected() const;                  // Paket innerhalb DROID_PARADE_TIMEOUT_MS erhalten
   uint32_t msSinceLastPacket() const;
+  uint32_t packetsRejected() const { return _rejected; }
   uint32_t packetsReceived() const { return _count; }
   bool hasNewData();                         // true seit letztem Aufruf neues Paket; setzt zurück
   void onReceive(void (*cb)(const DroidParadePacket &)) { _cb = cb; }
@@ -27,15 +29,18 @@ public:
   bool     getSpecialAction(uint8_t n) const { return isConnected() && dpGetBit(_p.specialAction, n, DP_SPECIAL_COUNT); }
   DroidParadeLightProp getLightProp() const { return isConnected() ? (DroidParadeLightProp)_p.lightProp : DP_LIGHT_OFF; }
   uint32_t getLightColor() const          { return _p.lightColor; }
-  uint16_t getSequence() const            { return _p.sequence; }
+  uint32_t getSequence() const            { return _p.sequence; }
   DroidParadePacket getPacket() const     { return _p; }
 
   void _handle(const uint8_t *data, int len);  // intern (Callback)
 
 private:
   DroidParadePacket _p = {};
+  const char *_secret = nullptr;
+  uint16_t _paradeId = 0;
   volatile uint32_t _lastMs = 0;
   volatile uint32_t _count = 0;
+  volatile uint32_t _rejected = 0;
   volatile bool _new = false;
   volatile bool _everReceived = false;
   void (*_cb)(const DroidParadePacket &) = nullptr;

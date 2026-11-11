@@ -1,6 +1,6 @@
 {
   "name": "DroidParadeSlave",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Droiden-Empfänger der Droid Parade: empfängt Steuerdaten per ESP-NOW vom Master.",
   "keywords": "esp32, esp-now, droid, droid parade",
   "repository": {

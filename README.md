@@ -9,7 +9,7 @@ Empfänger-Bibliothek des **Droid Parade**-Systems. Läuft auf dem Controller ei
 #include <DroidParadeSlave.h>
 DroidParadeSlave droid;
 
-void setup() { droid.begin(1, 1); }  // Droiden-ID 1, WLAN-Kanal 1 (wie Master)
+void setup() { droid.begin(paradeConfig); }  // Config wie beim Master (siehe unten)
 
 void loop() {
   if (droid.hasNewData()) {
@@ -20,8 +20,24 @@ void loop() {
 ```
 
 ## Verhalten
-- Ungültige Pakete (Magic, Version, CRC, Länge) werden verworfen.
+- Ungültige Pakete (Länge, Magic, Version, Signatur) werden verworfen.
 - Bricht die Verbindung ab (`DROID_PARADE_TIMEOUT_MS`), liefern alle Getter aus/0 und `getLightProp()` OFF (Fail-safe).
 
+## Zugehörigkeit & Sicherheit
+Master und Droiden teilen eine `DroidParadeConfig`:
+
+```cpp
+const DroidParadeConfig paradeConfig = {
+  /* paradeId */ 0x0001,                     // öffentliche Kennung der Parade
+  /* secret   */ "mein-geheimes-passwort",   // mind. 8 Zeichen, geheim halten
+  /* channel  */ 1                           // WLAN-Kanal
+};
+```
+
+- Jedes Paket trägt die `paradeId` und ist mit einem gekürzten HMAC-SHA256 über das `secret` signiert.
+- Pakete mit anderer Parade-ID, falscher Signatur oder alter Sequenznummer (Replay) werden verworfen (`packetsRejected()`).
+- `begin()` liefert `false`, wenn das Secret fehlt oder kürzer als 8 Zeichen ist.
+- Die Pakete sind signiert, aber **nicht verschlüsselt**; das Secret darf nicht ins öffentliche Repo.
+
 ## API
-`begin(channel)`, `isConnected`, `hasNewData`, `onReceive(callback)`, `msSinceLastPacket`, `packetsReceived`, `getBodyLeft(n)`, `getBodyRight(n)`, `getBodyCenter(n)`, `getBodyArms()`, `getDomeRotation()`, `getDome(n)`, `getSpecialAction(n)`, `getLightProp()`, `getLightColor()`, `getSequence()`, `getPacket()`. Beispiel: `examples/SlaveBasic`.
+`begin(config)`, `isConnected`, `hasNewData`, `onReceive(callback)`, `msSinceLastPacket`, `packetsReceived`, `packetsRejected`, `getBodyLeft(n)`, `getBodyRight(n)`, `getBodyCenter(n)`, `getBodyArms()`, `getDomeRotation()`, `getDome(n)`, `getSpecialAction(n)`, `getLightProp()`, `getLightColor()`, `getSequence()`, `getPacket()`. Beispiel: `examples/SlaveBasic`.
