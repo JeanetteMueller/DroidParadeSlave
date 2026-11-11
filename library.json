@@ -1,0 +1,18 @@
+{
+  "name": "DroidParadeSlave",
+  "version": "1.0.0",
+  "description": "Droiden-Empfänger der Droid Parade: empfängt Steuerdaten per ESP-NOW vom Master.",
+  "keywords": "esp32, esp-now, droid, droid parade",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JeanetteMueller/DroidParadeSlave.git"
+  },
+  "authors": [
+    { "name": "Jeanette Müller", "url": "https://github.com/JeanetteMueller", "maintainer": true }
+  ],
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "dependencies": [
+    { "name": "DroidParadeShared", "version": "https://github.com/JeanetteMueller/DroidParadeShared.git" }
+  ]
+}
